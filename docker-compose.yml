@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+
+  # Redis — message broker for Celery
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  # FastAPI — REST API
+  api:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    env_file:
+      - ./backend/.env
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+
+  # HIGH priority worker — 2 concurrent workers, drains HIGH queue only
+  worker-high:
+    build: ./backend
+    depends_on:
+      - redis
+    env_file:
+      - ./backend/.env
+    command: celery -A worker.celery_app worker -Q high --concurrency=2 --loglevel=info -n worker-high@%h
+    volumes:
+      - ./backend:/app
+
+  # MEDIUM priority worker — 2 concurrent workers, drains MEDIUM queue only
+  worker-medium:
+    build: ./backend
+    depends_on:
+      - redis
+    env_file:
+      - ./backend/.env
+    command: celery -A worker.celery_app worker -Q medium --concurrency=2 --loglevel=info -n worker-medium@%h
+    volumes:
+      - ./backend:/app
+
+  # LOW priority worker — 1 concurrent worker, drains LOW queue only
+  worker-low:
+    build: ./backend
+    depends_on:
+      - redis
+    env_file:
+      - ./backend/.env
+    command: celery -A worker.celery_app worker -Q low --concurrency=1 --loglevel=info -n worker-low@%h
+    volumes:
+      - ./backend:/app
