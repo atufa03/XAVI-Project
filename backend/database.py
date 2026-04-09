@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb+srv://samreenzaidi:Mocha2016@cluster0.dmeztk9.mongodb.net/?appName=Cluster0")
+MONGODB_URI = os.getenv("MONGODB_URI", "mongodb+srv://atufanadeem394_db_user:nadeem%40000@cluster0.4tgdv28.mongodb.net/?appName=Cluster0")
 
 # Async client — used by FastAPI endpoints
 async_client = AsyncIOMotorClient(MONGODB_URI)
